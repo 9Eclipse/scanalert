@@ -1,0 +1,6 @@
+{
+  "name": "ScentAlert",
+  "description": "Aplikacja do monitorowania promocji perfum, analizowania opłacalności ofert za pomocą Deal Score, historii cen i personalizowanych powiadomień.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
