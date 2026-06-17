@@ -1316,6 +1316,10 @@ fun DetailsScreen(
 
     var showConfirmationShopModal by remember { mutableStateOf(false) }
     var selectedShopTarget by remember { mutableStateOf("") }
+    var aiResponse by remember { mutableStateOf("") }
+    var isLoadingAi by remember { mutableStateOf(false) }
+    var userQuestion by remember { mutableStateOf("") }
+    val detailsCoroutineScope = rememberCoroutineScope()
 
     LazyColumn(
         modifier = Modifier
@@ -1532,6 +1536,206 @@ fun DetailsScreen(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // AI Doradca Zapachowy - Gemini AI Integration
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = DarkVelvet),
+                border = BorderStroke(1.dp, RoseGold.copy(alpha = 0.4f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .testTag("ai_advisor_card"),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "✨ INTELIGENTNY DORADCA AI",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = RoseGold
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (isLoadingAi) {
+                            CircularProgressIndicator(
+                                color = RoseGold,
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Twój osobisty asystent premium po świecie zapachów. Poznaj unikalne szczegóły o tym flakonie od Gemini AI:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NeutralCream.copy(alpha = 0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Buttons for preset questions
+                    Text(
+                        text = "Szybkie tematy analizy:",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = NeutralMuted,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SuggestionChip(
+                            onClick = {
+                                if (!isLoadingAi) {
+                                    isLoadingAi = true
+                                    aiResponse = "Analizuję profil zapachowy..."
+                                    detailsCoroutineScope.launch {
+                                        aiResponse = GeminiClient.askGemini(
+                                            "Opisz szczegółowo profil zapachowy perfum ${prodObject.brand} ${prodObject.name} (${varObject.concentration}). " +
+                                            "Wyjaśnij ich nuty zapachowe (głowy, serca i bazy) w elegancki i zwięzły sposób. Odpowiedz po polsku."
+                                        )
+                                        isLoadingAi = false
+                                    }
+                                }
+                            },
+                            label = { Text("Profil zapachowy (nuty)", fontSize = 11.sp) },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                labelColor = RoseGold,
+                                containerColor = LightVelvet
+                            )
+                        )
+
+                        SuggestionChip(
+                            onClick = {
+                                if (!isLoadingAi) {
+                                    isLoadingAi = true
+                                    aiResponse = "Analizuję parametry i okazje..."
+                                    detailsCoroutineScope.launch {
+                                        aiResponse = GeminiClient.askGemini(
+                                            "Dla kogo i na jaką okazję oraz porę roku najbardziej pasuje zapach ${prodObject.brand} ${prodObject.name}? " +
+                                            "Zanalizuj również jego trwałość i projekcję (sillage). Odpowiedz po polsku zwięźle."
+                                        )
+                                        isLoadingAi = false
+                                    }
+                                }
+                            },
+                            label = { Text("Okazje i parametry", fontSize = 11.sp) },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                labelColor = RoseGold,
+                                containerColor = LightVelvet
+                            )
+                        )
+
+                        SuggestionChip(
+                            onClick = {
+                                if (!isLoadingAi) {
+                                    isLoadingAi = true
+                                    aiResponse = "Generuję wskazówki warstwowania..."
+                                    detailsCoroutineScope.launch {
+                                        aiResponse = GeminiClient.askGemini(
+                                            "Z jakimi innymi typami aromatów lub nut zapachowych można łączyć (layerować) zapach ${prodObject.brand} ${prodObject.name}? " +
+                                            "Podaj 2 praktyczne sugestie luksusowego łączenia zapachów dla marki ${prodObject.brand}. Odpowiedz po polsku."
+                                        )
+                                        isLoadingAi = false
+                                    }
+                                }
+                            },
+                            label = { Text("Z czym łączyć (layering)?", fontSize = 11.sp) },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                labelColor = RoseGold,
+                                containerColor = LightVelvet
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // AI Response container block
+                    if (aiResponse.isNotEmpty()) {
+                        Surface(
+                            color = LightVelvet,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = "Odpowiedź doradcy AI:",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = RoseGold,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = aiResponse,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = NeutralCream,
+                                        lineHeight = 16.sp
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Custom free-form questions input row
+                    TextField(
+                        value = userQuestion,
+                        onValueChange = { userQuestion = it },
+                        placeholder = { Text("Zadaj własne pytanie doradcy AI...", color = NeutralMuted, fontSize = 12.sp) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 50.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    if (userQuestion.isNotBlank() && !isLoadingAi) {
+                                        val prompt = "Użytkownik pyta o perfumy ${prodObject.brand} ${prodObject.name} (${varObject.concentration}): \"$userQuestion\". " +
+                                                "Odpowiedz jako profesjonalny, luksusowy ekspert perfumeryjny (po polsku, zwięźle i merytorycznie)."
+                                        isLoadingAi = true
+                                        aiResponse = "Generuję odpowiedź dla Ciebie..."
+                                        detailsCoroutineScope.launch {
+                                            aiResponse = GeminiClient.askGemini(prompt)
+                                            isLoadingAi = false
+                                        }
+                                        userQuestion = ""
+                                    }
+                                },
+                                enabled = userQuestion.isNotBlank() && !isLoadingAi
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Send,
+                                    contentDescription = "Wyślij",
+                                    tint = if (userQuestion.isNotBlank() && !isLoadingAi) RoseGold else NeutralMuted
+                                )
+                            }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = LightVelvet,
+                            unfocusedContainerColor = LightVelvet,
+                            focusedTextColor = NeutralCream,
+                            unfocusedTextColor = NeutralCream,
+                            cursorColor = RoseGold,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        singleLine = true
+                    )
                 }
             }
         }
